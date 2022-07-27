@@ -1,43 +1,94 @@
 % FCT pipeline
 
 %%%
-function FCT_batch(inptpara)
+function FCT_batch(inp)
 
-root_dir = inptpara.rootDir;
-projID = inptpara.projID;
-pathi = inptpara.path01;
-patho = inptpara.path02;
+t1_file = inp.t1_niigz;
+fmri_file = inp.fmri_niigz;
+xnat_project   = inp.xnat_project;
+xnat_subject   = inp.xnat_subject;
+xnat_session   = inp.xnat_session;
+patho = inp.patho;
 
-if ~isdeployed
-    addpath(genpath([root_dir,'\add2path\spm12']));
-    addpath(genpath([root_dir,'\z_batch_pipeline\add2path\DPABI_V2.3_170105']));
-    addpath(genpath([root_dir '\myfunc\']))
+% Convert chars to strings if deployed
+if ischar(t1_file)
+    t1_file=convertCharsToStrings(t1_file);
+    xnat_project=convertCharsToStrings(xnat_project);
+    xnat_subject=convertCharsToStrings(xnat_subject);
+    xnat_session=convertCharsToStrings(xnat_session);
+    patho=convertCharsToStrings(patho);
 end
 
-path = [root_dir '/z_batch_pipeline/'];
+% root_dir = inptpara.rootDir;
+% xnat_project = inptpara.projID;
+% pathi = inptpara.path01;
+% patho = inptpara.path02;
+% 
+% if ~isdeployed
+%     addpath(genpath([root_dir,'\add2path\spm12']));
+%     addpath(genpath([root_dir,'\z_batch_pipeline\add2path\DPABI_V2.3_170105']));
+%     addpath(genpath([root_dir '\myfunc\']))
+% end
+% 
+% path = [root_dir '/z_batch_pipeline/'];
 
 
-%% check existence of fMRI and T1
-if isempty(dir([pathi '/T1Img/']))
-    disp('no T1 scan'); return;
+% %% check existence of fMRI and T1
+% if isempty(dir([pathi '/T1Img/']))
+%     disp('no T1 scan'); return;
+% end
+% if isempty(dir([pathi '/FunImg/']))
+%     disp('no fMRI scan'); return;
+% end
+
+
+% %% delete residues
+% if exist([patho '/preprocess'], 'dir')
+%     rmdir([patho '/preprocess'], 's');
+% end
+
+%% Prepare input files and move to output directory
+disp('Preparing inputs')
+
+if ~exist(patho,'dir')
+    mkdir(patho);
 end
-if isempty(dir([pathi '/FunImg/']))
-    disp('no fMRI scan'); return;
-end
-
-
-%% delete residues
-if exist([patho '/preprocess'], 'dir')
-    rmdir([patho '/preprocess'], 's');
-end
-
 
 %% preprocessing
-mkdir([patho '/preprocess']);
+i=1;
+mkdir([patho '/preprocess/FunImg/' num2str(i)]);
+mkdir([patho '/preprocess/T1Img/' num2str(i)]);
 
-copyfile([pathi '/*'],[patho '/preprocess/']); % original T1 and rsfMRI
-load(([path 'prepro_saved_v5.mat']),'Cfg'); % load default cfg file, modified in v5
-%######################## set parameters #######################%
+tmp = split(fmri_file,'/');
+fmri_name = tmp{end};
+tmp = split(t1_file,'/');
+t1_name = tmp{end};
+%check for json
+tmp=dir(fmri_file);
+if isempty(dir([tmp.folder,'/*.json']))
+    fprintf('No .json files found. Extracting header info from nifti.');
+else
+    % copy json files
+    fmri_js = replace(fmri_file,'.nii.gz','.json'); 
+    tmp = split(fmri_js,'/');
+    json_name = tmp{end};
+    copyfile(fmri_js,sprintf('%s/preprocess/FunImg/%s/%s',patho,num2str(i),json_name));
+%            t1_js = [t1_file(1:end-7) '.json'];
+%            copyfile(t1_js,sprintf('%s/preprocess/T1Img/%s/%s',patho,num2str(i),[t1_name(1:end-4) '.json']));
+end
+copyfile(fmri_file,sprintf('%s/preprocess/FunImg/%s/%s',patho,num2str(i),fmri_name)); % original T1 and rsfMRI
+copyfile(t1_file,sprintf('%s/preprocess/T1Img/%s/%s',patho,num2str(i) ,t1_name));% original T1 and rsfMRI
+
+
+%% ==== load config file =============================
+% Change this path once code is containerized
+LOADFILENAME1=which(fullfile('prepro_saved_v5.mat'));
+
+% Load the data file from current working directory
+load(which(LOADFILENAME1),'Cfg');
+
+
+%% ######################## set parameters #######################%
 % set dir etc.
 Cfg.WorkingDir=[patho,'/preprocess'];
 Cfg.DataProcessDir=[patho,'/preprocess'];
@@ -63,13 +114,13 @@ for i=3:length(list) % multiple scans
     tpnum = info.ImageSize(4); disp(['num of time points =' num2str(tpnum)]);
 
     % set default slice order according to the XNAT project
-    if strcmp(projID, 'ADNI_23')
+    if strcmp(xnat_project, 'ADNI_23')
         slorder = [1:2:slnum 2:2:slnum];
         csfthresh = 0.9999999;
-    elseif strcmp(projID, 'BLSA')
+    elseif strcmp(xnat_project, 'BLSA')
         slorder = 1:slnum;
         csfthresh = 0.995;
-    elseif strcmp(projID, 'OASIS-3')
+    elseif strcmp(xnat_project, 'OASIS-3')
         slorder = 1:slnum;
         csfthresh = 0.99;
     end
@@ -266,6 +317,70 @@ if exist([patho '/preprocess/T1Img/'], 'dir'), rmdir([patho '/preprocess/T1Img/'
 if exist([patho '/preprocess/T1ImgCoreg/'], 'dir'), rmdir([patho '/preprocess/T1ImgCoreg/'], 's'); end
 if exist([patho '/preprocess/T1ImgNewSegment/'], 'dir'), rmdir([patho '/preprocess/T1ImgNewSegment/'], 's'); end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Zip all nifti files
+
+cd(out_dir)
+
+A = dir(out_dir);
+for i = 3:length(A)
+    if A(i).isdir == 0
+        continue
+    else 
+        cd(A(i).folder);
+        B = dir(A(i).name);
+        for j = 3:length(B)
+            if endsWith(B(j).name,'.nii')
+                cd(B(j).folder);
+                gzip(B(j).name);
+                delete(B(j).name);
+            elseif B(j).isdir == 0
+                continue
+            else
+                cd(B(j).folder);
+                C = dir(B(j).name);
+                for k = 3:length(C)
+                    if C(k).isdir == 1
+                        cd(C(k).folder);
+                        D = dir(C(k).name);
+                        for l=3:length(D)
+                            if D(l).isdir == 1
+                                cd(D(l).folder);
+                                E = dir(D(l).name);
+                                for m=3:length(E)
+                                    if endsWith(E(m).name,'.nii')
+                                        cd(E(m).folder);
+                                        gzip(E(m).name);
+                                        delete(E(m).name);
+                                    else
+                                        continue
+                                    end
+                                end
+                            elseif endsWith(D(l).name,'.nii')
+                                cd(D(l).folder);
+                                gzip(D(l).name);
+                                delete(D(l).name);
+                            else
+                                continue
+                            end
+                        end
+                    elseif endsWith(C(k).name,'.nii')
+                        cd(C(k).folder);
+                        gzip(C(k).name);
+                        delete(C(k).name);
+                    else
+                        continue
+                    end
+                end
+            end
+        end
+    end
+end
+
+disp('all done');
+exit
+
+end
 
 %%%%%%END!!
 
