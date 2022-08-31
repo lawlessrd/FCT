@@ -1,14 +1,14 @@
 % FCT pipeline
 
 %%%
-function FCT_batch(inp)
+function fct_main(inp)
 
 t1_file = inp.t1_niigz;
 fmri_file = inp.fmri_niigz;
 xnat_project   = inp.xnat_project;
 xnat_subject   = inp.xnat_subject;
 xnat_session   = inp.xnat_session;
-patho = inp.patho;
+patho = inp.out_dir;
 
 % Convert chars to strings if deployed
 if ischar(t1_file)
@@ -16,7 +16,7 @@ if ischar(t1_file)
     xnat_project=convertCharsToStrings(xnat_project);
     xnat_subject=convertCharsToStrings(xnat_subject);
     xnat_session=convertCharsToStrings(xnat_session);
-    patho=convertCharsToStrings(patho);
+%    patho=convertCharsToStrings(patho);
 end
 
 % root_dir = inptpara.rootDir;
@@ -162,14 +162,26 @@ for i=3:length(list) % multiple scans
         [patho,'/preprocess/CatNormalization/' list(i).name '/Filtered_4DVolume.nii']);
 
     % Segmentation based on T1, output = tissue-masks
-    load([path,'/saved_cat12.mat'],'matlabbatch');
+    LOADFILENAME1=which(fullfile('saved_cat12.mat'));
+
+    % Load the data file from current working directory
+    load(which(LOADFILENAME1),'matlabbatch');
+    
+    %load([path,'/saved_cat12.mat'],'matlabbatch');
     matlabbatch{1,1}.spm.tools.cat.estwrite.data{1,1}=[patho,'/preprocess/CatNormalization/' list(i).name '/T1.nii,1'];
     matlabbatch{1,1}.spm.tools.cat.estwrite.opts.tpm{1,1}=[path,'/TPM.nii'];
     matlabbatch{1,1}.spm.tools.cat.estwrite.extopts.registration.shooting.shootingtpm{1,1}=[path,'/Template_0_IXI555_MNI152_GS.nii'];
     spm_jobman('run',matlabbatch);
 
     % Coregister fMRI to T1
-    load([path,'/saved_coreg.mat'],'matlabbatch');
+    
+    %load([path,'/saved_coreg.mat'],'matlabbatch');
+    
+    LOADFILENAME1=which(fullfile('saved_coreg.mat'));
+
+    % Load the data file from current working directory
+    load(which(LOADFILENAME1),'matlabbatch');
+    
     matlabbatch{1,1}.spm.spatial.coreg.estimate.ref{1,1}=[patho,'/preprocess/CatNormalization/' list(i).name '/T1.nii,1'];
     lstmp = dir([patho,'/preprocess/RealignParameter/' list(i).name '/mean*']);
     matlabbatch{1,1}.spm.spatial.coreg.estimate.source{1,1}=[patho,'/preprocess/RealignParameter/' list(i).name '/' lstmp.name];
@@ -182,7 +194,12 @@ for i=3:length(list) % multiple scans
     spm_jobman('run',matlabbatch);
 
     % Normalize T1/tissue-masks/ALFF/fALFF/Reho/fMRI (->MNI space)
-    load([path,'/saved_warp.mat'],'matlabbatch');
+    
+    LOADFILENAME1=which(fullfile('saved_warp.mat'));
+
+    % Load the data file from current working directory
+    load(which(LOADFILENAME1),'matlabbatch');
+    %load([path,'/saved_warp.mat'],'matlabbatch');
     matlabbatch{1,1}.spm.spatial.normalise.write.subj.def{1,1}=[patho,'/preprocess/CatNormalization/' list(i).name '/mri/y_T1.nii'];
     matlabbatch{1,1}.spm.spatial.normalise.write.subj.resample{1,1} =[patho,'/preprocess/CatNormalization/' list(i).name '/mri/p0T1.nii,1'];
     matlabbatch{1,1}.spm.spatial.normalise.write.subj.resample{2,1} =[patho,'/preprocess/CatNormalization/' list(i).name '/mri/p1T1.nii,1'];
