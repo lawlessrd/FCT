@@ -2494,7 +2494,7 @@ if (AutoDataProcessParameter.IsCovremove==1) && (strcmpi(AutoDataProcessParamete
     
     %Remove the Covariables
     for iFunSession=1:AutoDataProcessParameter.FunctionalSessionNumber
-        parfor i=1:AutoDataProcessParameter.SubjectNum % by Gao % for i=1:AutoDataProcessParameter.SubjectNum
+        parfor i=1:AutoDataProcessParameter.SubjectNum
             
             CovariablesDef=[];
             
@@ -2609,10 +2609,10 @@ if (AutoDataProcessParameter.IsCovremove==1) && (strcmpi(AutoDataProcessParamete
                 end
             end
             
-            if (AutoDataProcessParameter.Covremove.CSF.IsRemove==1) && strcmpi(AutoDataProcessParameter.Covremove.CSF.Method,'Mean') 
+            if (AutoDataProcessParameter.Covremove.CSF.IsRemove==1) && strcmpi(AutoDataProcessParameter.Covremove.CSF.Method,'Mean')
                 if strcmpi(AutoDataProcessParameter.Covremove.CSF.Mask,'SPM')
                     SubjectCovariatesROI=[SubjectCovariatesROI;{[AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,'WarpedMasks',filesep,AutoDataProcessParameter.SubjectID{i},'_CsfMask_07_91x109x91.nii']}];
-                elseif strcmpi(AutoDataProcessParameter.Covremove.CSF.Mask,'Segment') % (Yes - Gao)
+                elseif strcmpi(AutoDataProcessParameter.Covremove.CSF.Mask,'Segment')
                     SubjectCovariatesROI=[SubjectCovariatesROI;{[AutoDataProcessParameter.DataProcessDir,filesep,'Masks',filesep,'SegmentationMasks',filesep,'FunSpace_ThrdMask_',AutoDataProcessParameter.SubjectID{i},'_CSF.nii']}];
                 end
             end
@@ -2661,7 +2661,7 @@ if (AutoDataProcessParameter.IsCovremove==1) && (strcmpi(AutoDataProcessParamete
     
     %Copy the Covariates Removed files to DataProcessDir\{AutoDataProcessParameter.StartingDirName}+C
     for iFunSession=1:AutoDataProcessParameter.FunctionalSessionNumber
-        parfor i=1:AutoDataProcessParameter.SubjectNum % by Gao % for i=1:AutoDataProcessParameter.SubjectNum
+        parfor i=1:AutoDataProcessParameter.SubjectNum
             mkdir([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,'C',filesep,AutoDataProcessParameter.SubjectID{i}])
             movefile([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,filesep,AutoDataProcessParameter.SubjectID{i}, '_Covremoved',filesep,'*'],...
                      [AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},AutoDataProcessParameter.StartingDirName,'C',filesep,AutoDataProcessParameter.SubjectID{i}])
@@ -2974,7 +2974,7 @@ if (AutoDataProcessParameter.IsNormalize>0) && strcmpi(AutoDataProcessParameter.
             end
             Filename = [AutoDataProcessParameter.DataProcessDir,filesep,'RealignParameter',filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirMean(1).name];
             
-            H = figure;
+            H = figure('visible','off');
             H = y_Call_spm_orthviews(Ch2Filename,0,0,0,18,Filename,jet(64),0,250,H,0.8);
             %H = y_Call_spm_orthviews(BrainVolume,NMin,PMin,ClusterSize,ConnectivityCriterion,UnderlayFileName,ColorMap,NMax,PMax,H,Transparency,Position,BrainHeader);
             
@@ -4641,7 +4641,7 @@ if (AutoDataProcessParameter.IsNormalize>0) && strcmpi(AutoDataProcessParameter.
             end
             Filename = [AutoDataProcessParameter.DataProcessDir,filesep,'RealignParameter',filesep,AutoDataProcessParameter.SubjectID{i},filesep,DirMean(1).name];
             
-            H = figure;
+            H = figure('visible','off');
             H = y_Call_spm_orthviews(Ch2Filename,0,0,0,18,Filename,jet(64),0,250,H,0.8);
             %H = y_Call_spm_orthviews(BrainVolume,NMin,PMin,ClusterSize,ConnectivityCriterion,UnderlayFileName,ColorMap,NMax,PMax,H,Transparency,Position,BrainHeader);
             

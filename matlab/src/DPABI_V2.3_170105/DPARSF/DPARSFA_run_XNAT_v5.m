@@ -242,7 +242,7 @@ end
 if (AutoDataProcessParameter.IsNeedConvertFunDCM2IMG==1)
     for iFunSession=1:AutoDataProcessParameter.FunctionalSessionNumber
         cd([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},'FunRaw']);
-        parfor i=1:AutoDataProcessParameter.SubjectNum
+        for i=1:AutoDataProcessParameter.SubjectNum
             OutputDir=[AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},'FunImg',filesep,AutoDataProcessParameter.SubjectID{i}];
             mkdir(OutputDir);
             DirDCM=dir([AutoDataProcessParameter.DataProcessDir,filesep,FunSessionPrefixSet{iFunSession},'FunRaw',filesep,AutoDataProcessParameter.SubjectID{i},filesep,'*']); %Revised by YAN Chao-Gan 100130. %DirDCM=dir([AutoDataProcessParameter.DataProcessDir,filesep,'FunRaw',filesep,AutoDataProcessParameter.SubjectID{i},filesep,'*.*']);

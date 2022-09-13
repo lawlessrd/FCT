@@ -78,7 +78,8 @@ else
 end
 copyfile(fmri_file,sprintf('%s/preprocess/FunImg/%s/%s',patho,num2str(i),fmri_name)); % original T1 and rsfMRI
 copyfile(t1_file,sprintf('%s/preprocess/T1Img/%s/%s',patho,num2str(i) ,t1_name));% original T1 and rsfMRI
-
+gunzip(fullfile([patho '/preprocess/T1Img/' num2str(i)],t1_name));
+gunzip(fullfile([patho '/preprocess/FunImg/' num2str(i)],fmri_name));
 
 %% ==== load config file =============================
 % Change this path once code is containerized
@@ -168,6 +169,10 @@ for i=3:length(list) % multiple scans
     load(which(LOADFILENAME1),'matlabbatch');
     
     %load([path,'/saved_cat12.mat'],'matlabbatch');
+    tmp = which('Template_0_IXI555_MNI152_GS.nii');
+    tmp=split(tmp,'/');
+    path = ['/', strjoin(tmp(2:end-1),'/')];
+    
     matlabbatch{1,1}.spm.tools.cat.estwrite.data{1,1}=[patho,'/preprocess/CatNormalization/' list(i).name '/T1.nii,1'];
     matlabbatch{1,1}.spm.tools.cat.estwrite.opts.tpm{1,1}=[path,'/TPM.nii'];
     matlabbatch{1,1}.spm.tools.cat.estwrite.extopts.registration.shooting.shootingtpm{1,1}=[path,'/Template_0_IXI555_MNI152_GS.nii'];
