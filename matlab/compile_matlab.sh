@@ -14,7 +14,6 @@
 #
 # The SPM12 version also matters. The compilation code is written for r7771.
 
-
 # Where to find SPM12 on our compilation machine
 SPM_PATH=/opt/spm12
 

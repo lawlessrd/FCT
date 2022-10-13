@@ -6,10 +6,10 @@
 
 # Single fmri input
 bin/run_spm12.sh /usr/local/MATLAB/MATLAB_Runtime/v97 \
-    function scz_entrypoint \
-    t1_niigz "/home/dylan/Documents/SCZ/INPUTS2/T1.nii.gz" \
-    fmri_niigz "/home/dylan/Documents/SCZ/INPUTS2/fmri.nii.gz" \
-    out_dir "/home/dylan/Documents/SCZ/OUTPUTS" \
-    xnat_project "BLSA" \
+    function fct_entrypoint \
+    t1_niigz "/home/dylan/Documents/FCT/INPUTS/T1w.nii.gz" \
+    fmri_niigz "/home/dylan/Documents/FCT/INPUTS/fmri.nii.gz" \
+    out_dir "/home/dylan/Documents/FCT/OUTPUTS" \
+    xnat_project "OASIS-3" \
     xnat_subject "TEST_SUBJ" \
     xnat_session "TEST_SESS"

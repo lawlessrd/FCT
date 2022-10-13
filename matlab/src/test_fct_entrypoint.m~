@@ -1,4 +1,4 @@
-% This script will test the matlab pipeline from the matlab command line.
+% This script will test the matlab pipeline from the matlab command line -
 % very useful for making sure it works before we bother to compile.
 
 % SPM12 needs to be in the path also

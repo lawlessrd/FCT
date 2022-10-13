@@ -25,9 +25,9 @@ end
 % patho = inptpara.path02;
 % 
 % if ~isdeployed
-%     addpath(genpath([root_dir,'\add2path\spm12']));
-%     addpath(genpath([root_dir,'\z_batch_pipeline\add2path\DPABI_V2.3_170105']));
-%     addpath(genpath([root_dir '\myfunc\']))
+%     addpath(genpath([root_dir,'/add2path/spm12']));
+%     addpath(genpath([root_dir,'/z_batch_pipeline/add2path/DPABI_V2.3_170105']));
+%     addpath(genpath([root_dir '/myfunc/']))
 % end
 % 
 % path = [root_dir '/z_batch_pipeline/'];
@@ -138,6 +138,13 @@ for i=3:length(list) % multiple scans
         end
     end
 
+    
+    % Set path variable
+    tmp = which('Template_0_IXI555_MNI152_GS.nii');
+    tmp=split(tmp,'/');
+    path = ['/', strjoin(tmp(2:end-1),'/')];
+    
+    
     % if there is no SliceTiming in JSON, try to find it in summary CSV file
     if strcmp(xnat_project, 'ADNI_23') && json_flag == 0 
         % find slice order in spreadsheet 
@@ -199,11 +206,6 @@ for i=3:length(list) % multiple scans
 
     % Load the data file from current working directory
     load(which(LOADFILENAME1),'matlabbatch');
-    
-    %load([path,'/saved_cat12.mat'],'matlabbatch');
-    tmp = which('Template_0_IXI555_MNI152_GS.nii');
-    tmp=split(tmp,'/');
-    path = ['/', strjoin(tmp(2:end-1),'/')];
     
     matlabbatch{1,1}.spm.tools.cat.estwrite.data{1,1}=[patho,'/preprocess/CatNormalization/' list(i).name '/T1.nii,1'];
     matlabbatch{1,1}.spm.tools.cat.estwrite.opts.tpm{1,1}=[path,'/TPM.nii'];
@@ -272,19 +274,19 @@ for i=3:length(list) % multiple scans
     delete([patho,'/preprocess/CatNormalization/' list(i).name '/Detrend_4DVolume.nii']);
     delete([patho,'/preprocess/CatNormalization/' list(i).name '/Filtered_4DVolume.nii']);
 end
-% saveDir = [path01 '\FCT\'];
+% saveDir = [path01 '/FCT/'];
 %%%brain mask
-if ~exist([patho '\results'],'dir')
-    mkdir([patho '\results']);
+if ~exist([patho '/results'],'dir')
+    mkdir([patho '/results']);
 end
-list1 = dir([patho '\preprocess\CatNormalization']);
+list1 = dir([patho '/preprocess/CatNormalization']);
 list1(1:2,:) = [];
 for ii = 1 : length(list1)
-    if ~exist([patho '\results\' list1(ii).name],'dir')
-        mkdir([patho '\results\' list1(ii).name]);
+    if ~exist([patho '/results/' list1(ii).name],'dir')
+        mkdir([patho '/results/' list1(ii).name]);
     end
-    copyfile([patho '\preprocess\CatNormalization\' list1(ii).name '\mni_Detrend_4DVolume.nii']...
-        ,[patho '\results\' list1(ii).name,'\']);
+    copyfile([patho '/preprocess/CatNormalization/' list1(ii).name '/mni_Detrend_4DVolume.nii']...
+        ,[patho '/results/' list1(ii).name,'/']);
 end
 
 
@@ -294,35 +296,35 @@ end
 %%%%%%%%%%%%%
 
 flags = struct('mask', false, 'mean', false, 'interp', 1, 'which', 1, 'wrap', [0 0 0], 'prefix', 'r');
-path_brod = [root_dir '\atlas\rBrodmann_YCG.nii'];
-% path_mask = [patho '\preprocess\Masks\AllResampled_BrainMask_05_91x109x91.nii'];
+path_brod = which('rBrodmann_YCG.nii');
+% path_mask = [patho '/preprocess/Masks/AllResampled_BrainMask_05_91x109x91.nii'];
 
 
 cd(patho);
 for i = 1 : length(list1)
 
-    path_mask = [patho '\preprocess\CatNormalization\' list1(i).name '\mri\mni_p0T1.nii'];
+    path_mask = [patho '/preprocess/CatNormalization/' list1(i).name '/mri/mni_p0T1.nii'];
     spm_reslice_quiet({path_brod path_mask},flags);
-    path1 = [[patho '\results\'] list1(i).name '\mni_Detrend_4DVolume.nii'];
+    path1 = [[patho '/results/'] list1(i).name '/mni_Detrend_4DVolume.nii'];
     spm_reslice_quiet({path_brod path1},flags);
-    copyfile([patho '\preprocess\CatNormalization\' list1(i).name '\mri\rmni_p0T1.nii'],...
-    [patho '\brainmask.nii']);
+    copyfile([patho '/preprocess/CatNormalization/' list1(i).name '/mri/rmni_p0T1.nii'],...
+    [patho '/brainmask.nii']);
     %%%% save dir
-%     mkdir([patho '\results\',list1(i).name,'\']);
-    saveDir = [patho '\results\',list1(i).name,'\'];
+%     mkdir([patho '/results/',list1(i).name,'/']);
+    saveDir = [patho '/results/',list1(i).name,'/'];
     %%% set up parameters for FTI functions
-    %     info=niftiinfo([outDir list1(i).name '\rDetrend_4DVolume.nii']);
+    %     info=niftiinfo([outDir list1(i).name '/rDetrend_4DVolume.nii']);
     nhood = 7;
     rpower = 2;
 
 
 %%% Step 0: preprocess the fmri
-    %     GMnii  = load_nii(strcat(path01,'\brainmask.nii'));
-    GM  = spm_vol(strcat(patho,'\brainmask.nii')); GM = spm_read_vols(GM);
+    %     GMnii  = load_nii(strcat(path01,'/brainmask.nii'));
+    GM  = spm_vol(strcat(patho,'/brainmask.nii')); GM = spm_read_vols(GM);
     GM = ones(size(GM)).*(GM>0);
     GM = flip(GM,1);
-    %     fMRnii = load_nii(strcat(rootDir,list1(i).name,'\rest1.nii'));
-    fMR = spm_vol(strcat([patho '\results\'],list1(i).name,'\rmni_Detrend_4DVolume.nii')); fMR = spm_read_vols(fMR);
+    %     fMRnii = load_nii(strcat(rootDir,list1(i).name,'/rest1.nii'));
+    fMR = spm_vol(strcat([patho '/results/'],list1(i).name,'/rmni_Detrend_4DVolume.nii')); fMR = spm_read_vols(fMR);
     fMR = flip(fMR,1);
     xcell_mask = GM;
     xcell = fMR;
@@ -383,9 +385,9 @@ if exist([patho '/preprocess/T1ImgNewSegment/'], 'dir'), rmdir([patho '/preproce
 
 %% Zip all nifti files
 
-cd(out_dir)
+cd(path_o)
 
-A = dir(out_dir);
+A = dir(path_o);
 for i = 3:length(A)
     if A(i).isdir == 0
         continue

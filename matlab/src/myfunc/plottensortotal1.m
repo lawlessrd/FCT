@@ -3,7 +3,7 @@ rsize = size(T1_img, 1);
 csize = size(T1_img, 2);
 ssize = size(T1_img, 3);   
 H = figure; 
-    set(H, 'Position', [20, 200, rsize*8, csize*8]); set(H, 'Visible', 'On');
+    set(H, 'Position', [20, 200, rsize*8, csize*8]); set(H, 'Visible', 'off');
     cslice = round(csize/2);  rslice = round(rsize/2);  sslice=round(ssize/2);
     radd = 0.5; cadd = 0.5; sadd = 0.5;
 
